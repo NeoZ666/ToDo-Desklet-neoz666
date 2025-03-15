@@ -1,0 +1,34 @@
+.main-box {
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+}
+
+.task-box {
+    padding: 5px;
+    margin-bottom: 5px;
+    border-bottom: 1px solid #ccc;
+}
+
+.task-label {
+    flex: 1;
+}
+
+.high-priority {
+    color: red;
+}
+
+.medium-priority {
+    color: orange;
+}
+
+.low-priority {
+    color: green;
+}
+
+.completed {
+    text-decoration: line-through;
+
+::contentReference[oaicite:0]{index=0}
+ 
+

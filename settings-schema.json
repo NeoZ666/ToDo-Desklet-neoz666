@@ -1,0 +1,37 @@
+{
+    "schema": "org.cinnamon.desklets.todo_list_desklet",
+    "name": "To-Do List Desklet Settings",
+    "description": "Settings for the To-Do List Desklet",
+    "settings": [
+        {
+            "type": "string",
+            "key": "default_priority",
+            "name": "Default Priority",
+            "description": "Set the default priority for new tasks",
+            "default": "medium",
+            "options": ["high", "medium", "low"]
+        },
+        {
+            "type": "color",
+            "key": "high_priority_color",
+            "name": "High Priority Color",
+            "description": "Color for high-priority tasks",
+            "default": "#FF0000"
+        },
+        {
+            "type": "color",
+            "key": "medium_priority_color",
+            "name": "Medium Priority Color",
+            "description": "Color for medium-priority tasks",
+            "default": "#FFA500"
+        },
+        {
+            "type": "color",
+            "key": "low_priority_color",
+            "name": "Low Priority Color",
+            "description": "Color for low-priority tasks",
+            "default": "#008000"
+        }
+    ]
+}
+
