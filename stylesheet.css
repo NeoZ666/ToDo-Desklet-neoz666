@@ -1,7 +1,7 @@
 /* Main container styling */
 .main-box {
     padding: 10px;
-    background-color: rgba(255, 255, 255, 0.8);
+    background-color: rgba(255, 255, 255, 0);
     border-radius: 10px;
     border: 1px solid #ccc;
 }
@@ -15,7 +15,7 @@
 .task-box {
     padding: 5px;
     margin-bottom: 5px;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #000000;
 }
 
 /* Task label styling */
