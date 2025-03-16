@@ -1,9 +1,8 @@
 const Desklet = imports.ui.desklet;
 const St = imports.gi.St;
-const Gio = imports.gi.Gio;
-const GLib = imports.gi.GLib;
-const Main = imports.ui.main;
 const PopupMenu = imports.ui.popupMenu;
+const Main = imports.ui.main;
+const Settings = imports.ui.settings;
 
 function MyDesklet(metadata, desklet_id) {
     this._init(metadata, desklet_id);
@@ -12,27 +11,39 @@ function MyDesklet(metadata, desklet_id) {
 MyDesklet.prototype = {
     __proto__: Desklet.Desklet.prototype,
 
-    _init: function(metadata, desklet_id) {
+    _init: function (metadata, desklet_id) {
         Desklet.Desklet.prototype._init.call(this, metadata, desklet_id);
-        this.tasks = [];  // Array to hold task objects
+        this.settings = new Settings.DeskletSettings(this, this.metadata.uuid, desklet_id);
+
+        // Bind settings
+        this.settings.bindProperty(Settings.BindingDirection.IN, "default_priority", "defaultPriority", this._onSettingsChanged, null);
+        this.settings.bindProperty(Settings.BindingDirection.IN, "show_completed_tasks", "showCompletedTasks", this._onSettingsChanged, null);
+        this.settings.bindProperty(Settings.BindingDirection.IN, "font_size", "fontSize", this._onSettingsChanged, null);
+
+        log("Default Priority: " + this.defaultPriority);
+        log("Show Completed Tasks: " + this.showCompletedTasks);
+        log("Font Size: " + this.fontSize);
+
+        this.tasks = [];
         this._createLayout();
+        this._onSettingsChanged();
     },
 
-    _createLayout: function() {
-        // Main container for the desklet
+    _createLayout: function () {
+        // Main container
         this.mainBox = new St.BoxLayout({ vertical: true, style_class: 'main-box' });
 
-        // Task list container
+        // Task list
         this.taskList = new St.BoxLayout({ vertical: true, style_class: 'task-list' });
         this.mainBox.add(this.taskList);
 
-        // Input container for new tasks
+        // Input box
         this.inputBox = new St.BoxLayout({ style_class: 'input-box' });
         this.taskEntry = new St.Entry({ hint_text: 'New Task...' });
         this.inputBox.add(this.taskEntry, { expand: true });
 
-        // Priority selection button (acts like a combo box)
-        this.priorityButton = new St.Button({ label: "Medium", style_class: 'priority-button' });
+        // Priority button
+        this.priorityButton = new St.Button({ label: this.defaultPriority, style_class: 'priority-button' });
         this._createPriorityMenu();
         this.inputBox.add(this.priorityButton);
 
@@ -47,79 +58,69 @@ MyDesklet.prototype = {
         this.setContent(this.mainBox);
     },
 
-    _createPriorityMenu: function() {
-        // Create a popup menu for priority selection attached to the button
+    _createPriorityMenu: function () {
         this.priorityMenu = new PopupMenu.PopupMenu(this.priorityButton, 0.0, St.Side.TOP);
         Main.uiGroup.add_actor(this.priorityMenu.actor);
         this.priorityMenu.actor.hide();
 
-        // Define menu items for different priorities
         let priorities = ["High", "Medium", "Low"];
         priorities.forEach((prio) => {
             let item = new PopupMenu.PopupMenuItem(prio);
             this.priorityMenu.addMenuItem(item);
         });
 
-        // When a menu item is activated, update the button's label
         this.priorityMenu.connect('activate', (menu, item) => {
             this.priorityButton.set_label(item.label.text);
-            this.priorityMenu.toggle(); // Hide the menu
+            this.priorityMenu.toggle();
         });
 
-        // Toggle the menu on button click
         this.priorityButton.connect('button-press-event', () => {
             this.priorityMenu.toggle();
         });
     },
 
-    _addTask: function(text, priority) {
+    _addTask: function (text, priority) {
         if (text.trim() === "") return;
-        // Add the task as an object with text, priority, and completion status
         this.tasks.push({ text: text.trim(), priority: priority, completed: false });
         this._refreshTaskList();
         this.taskEntry.set_text("");
     },
 
-    _refreshTaskList: function() {
-        // Clear the current list
+    _refreshTaskList: function () {
         this.taskList.destroy_all_children();
-        // Rebuild the task list UI
         this.tasks.forEach((task, index) => {
+            if (!this.showCompletedTasks && task.completed) return;
+
             let taskBox = new St.BoxLayout({ style_class: 'task-box' });
-            let taskLabel = new St.Label({ 
-                text: (index + 1) + ". " + task.text, 
+            let taskLabel = new St.Label({
+                text: (index + 1) + ". " + task.text,
                 style_class: 'task-label ' + task.priority.toLowerCase() + '-priority'
             });
+            taskLabel.set_style(`font-size: ${this.fontSize}pt;`);
             if (task.completed) {
                 taskLabel.add_style_class_name('completed');
             }
 
-            // Button to mark task complete/incomplete
-            let completeButton = new St.Button({ 
-                label: task.completed ? "Undo" : "Complete", 
+            let completeButton = new St.Button({
+                label: task.completed ? "Undo" : "Complete",
                 style_class: 'complete-button'
             });
-            completeButton.connect('clicked', () => {
-                task.completed = !task.completed;
-                this._refreshTaskList();
-            });
 
-            // Button to delete task
-            let deleteButton = new St.Button({ label: "Delete", style_class: 'delete-button' });
-            deleteButton.connect('clicked', () => {
-                this.tasks.splice(index, 1);
-                this._refreshTaskList();
-            });
-
-            taskBox.add(taskLabel, { expand: true });
+            // Add taskLabel and completeButton to taskBox
+            taskBox.add(taskLabel);
             taskBox.add(completeButton);
-            taskBox.add(deleteButton);
+
+            // Add taskBox to taskList
             this.taskList.add(taskBox);
         });
+    },
+
+    _onSettingsChanged: function () {
+        // Handle settings changes
+        this._refreshTaskList();
     }
 };
 
 function main(metadata, desklet_id) {
     return new MyDesklet(metadata, desklet_id);
 }
-

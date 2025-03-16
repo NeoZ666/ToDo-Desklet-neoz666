@@ -1,7 +1,7 @@
 {
 	"uuid": "todo_desklet@neoz666",
-	"name": "To Do List",
-	"description": "A To Do List Desktop with Priority",
+	"name": "To-Do List Desklet",
+	"description": "A desklet to manage your tasks with priorities.",
 	"author": "NeoZ666",
 	"version": "1.0",
 	"website": "https://github.com/NeoZ666"
