@@ -11,7 +11,7 @@ function MyDesklet(metadata, desklet_id) {
 MyDesklet.prototype = {
     __proto__: Desklet.Desklet.prototype,
 
-    _init: function (metadata, desklet_id) {
+    _init: function(metadata, desklet_id) {
         Desklet.Desklet.prototype._init.call(this, metadata, desklet_id);
         this.settings = new Settings.DeskletSettings(this, this.metadata.uuid, desklet_id);
 
@@ -20,16 +20,12 @@ MyDesklet.prototype = {
         this.settings.bindProperty(Settings.BindingDirection.IN, "show_completed_tasks", "showCompletedTasks", this._onSettingsChanged, null);
         this.settings.bindProperty(Settings.BindingDirection.IN, "font_size", "fontSize", this._onSettingsChanged, null);
 
-        log("Default Priority: " + this.defaultPriority);
-        log("Show Completed Tasks: " + this.showCompletedTasks);
-        log("Font Size: " + this.fontSize);
-
         this.tasks = [];
         this._createLayout();
         this._onSettingsChanged();
     },
 
-    _createLayout: function () {
+    _createLayout: function() {
         // Main container
         this.mainBox = new St.BoxLayout({ vertical: true, style_class: 'main-box' });
 
@@ -58,7 +54,7 @@ MyDesklet.prototype = {
         this.setContent(this.mainBox);
     },
 
-    _createPriorityMenu: function () {
+    _createPriorityMenu: function() {
         this.priorityMenu = new PopupMenu.PopupMenu(this.priorityButton, 0.0, St.Side.TOP);
         Main.uiGroup.add_actor(this.priorityMenu.actor);
         this.priorityMenu.actor.hide();
@@ -79,18 +75,18 @@ MyDesklet.prototype = {
         });
     },
 
-    _addTask: function (text, priority) {
+    _addTask: function(text, priority) {
         if (text.trim() === "") return;
         this.tasks.push({ text: text.trim(), priority: priority, completed: false });
         this._refreshTaskList();
         this.taskEntry.set_text("");
     },
 
-    _refreshTaskList: function () {
+    _refreshTaskList: function() {
         this.taskList.destroy_all_children();
         this.tasks.forEach((task, index) => {
             if (!this.showCompletedTasks && task.completed) return;
-
+    
             let taskBox = new St.BoxLayout({ style_class: 'task-box' });
             let taskLabel = new St.Label({
                 text: (index + 1) + ". " + task.text,
@@ -100,27 +96,32 @@ MyDesklet.prototype = {
             if (task.completed) {
                 taskLabel.add_style_class_name('completed');
             }
-
+    
             let completeButton = new St.Button({
                 label: task.completed ? "Undo" : "Complete",
                 style_class: 'complete-button'
             });
-
-            // Add taskLabel and completeButton to taskBox
-            taskBox.add(taskLabel);
+            completeButton.connect('clicked', () => {
+                task.completed = !task.completed;
+                this._refreshTaskList();
+            });
+    
+            let deleteButton = new St.Button({
+                label: "Delete",
+                style_class: 'delete-button'
+            });
+            deleteButton.connect('clicked', () => {
+                this.tasks.splice(index, 1);
+                this._refreshTaskList();
+            });
+    
+            taskBox.add(taskLabel, { expand: true });
             taskBox.add(completeButton);
-
-            // Add taskBox to taskList
+            taskBox.add(deleteButton);
             this.taskList.add(taskBox);
         });
-    },
-
-    _onSettingsChanged: function () {
-        // Handle settings changes
-        this._refreshTaskList();
     }
-};
-
+};    
 function main(metadata, desklet_id) {
     return new MyDesklet(metadata, desklet_id);
 }
